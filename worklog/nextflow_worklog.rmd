@@ -1,0 +1,118 @@
+
+```
+LSF_DOCKER_VOLUMES="/scratch1/fs1/ris:/scratch1/fs1/ris /scratch1/fs1/dinglab:/scratch1/fs1/dinglab" \
+thpc-terminal bash -c "cd /scratch1/fs1/dinglab/Active/Projects/ysong/hmftools/test_data/test_output ; nextflow run nf-core/sarek -profile test -c /scratch1/fs1/ris/application/nextflow/conf/rnaseq.config --outdir /scratch1/fs1/dinglab/Active/Projects/ysong/hmftools/test_data/test_output"
+```
+
+#cat /scratch1/fs1/ris/application/nextflow/conf/rnaseq.config
+
+```
+process {
+    executor = "lsf"
+    queue    = { "general" } 
+    clusterOptions =  { "-a 'docker(quay.io/${task.container})' -G compute-ris -J rnaseq -env 'all,PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'" }
+}
+
+executor {
+    queueSize = 7
+    submitRateLimit = '1/1sec'
+}
+```
+
+
+# errors
+```
+  nxf_fs_move() {
+    local source=$1
+    local target=$2
+    local basedir=$(dirname $1)
+    mkdir -p $target/$basedir
+    mv -f $source $target/$basedir
+  }
+  
+  nxf_fs_rsync() {
+    rsync -rRl $1 $2
+  }
+  
+  nxf_fs_rclone() {
+    rclone copyto $1 $2/$1
+  }
+  
+  nxf_fs_fcp() {
+    fcp $1 $2/$1
+  }
+  
+  on_exit() {
+      exit_status=${nxf_main_ret:=$?}
+      printf -- $exit_status > /scratch1/fs1/dinglab/Active/Projects/ysong/hmftools/test_data/test_output/work/67/361a632405adab48f55d59aa6df167/.exitcode
+      set +u
+      exit $exit_status
+  }
+  
+  on_term() {
+      set +e
+      [[ "$pid" ]] && nxf_kill $pid
+  }
+  
+  nxf_launch() {
+      /bin/bash /scratch1/fs1/dinglab/Active/Projects/ysong/hmftools/test_data/test_output/work/67/361a632405adab48f55d59aa6df167/.command.run nxf_trace
+  }
+  
+  nxf_stage() {
+      true
+      # stage input files
+      rm -f genome.fasta
+      ln -s /scratch1/fs1/dinglab/Active/Projects/ysong/hmftools/test_data/test_output/work/stage-47f02a52-c673-425d-85e8-364c6e6c5922/8e/f280fe7797e800e35f697c60f5c73a/genome.fasta genome.fasta
+  }
+  
+  nxf_unstage() {
+      true
+      [[ ${nxf_main_ret:=0} != 0 ]] && return
+  }
+  
+  nxf_main() {
+      trap on_exit EXIT
+      trap on_term TERM INT USR2
+      trap '' USR1
+  
+      [[ "${NXF_CHDIR:-}" ]] && cd "$NXF_CHDIR"
+      NXF_SCRATCH=''
+      [[ $NXF_DEBUG > 0 ]] && nxf_env
+      touch /scratch1/fs1/dinglab/Active/Projects/ysong/hmftools/test_data/test_output/work/67/361a632405adab48f55d59aa6df167/.command.begin
+      set +u
+      set -u
+      export PYTHONNOUSERSITE="1"
+      export R_PROFILE_USER="/.Rprofile"
+      export R_ENVIRON_USER="/.Renviron"
+      export JULIA_DEPOT_PATH="/usr/local/share/julia"
+      export PATH="$PATH:/scratch1/fs1/dinglab/Active/Projects/ysong/hmftools/test_data/test_output/.nextflow/assets/nf-core/sarek/bin"
+      [[ $NXF_SCRATCH ]] && cd $NXF_SCRATCH
+      export NXF_TASK_WORKDIR="$PWD"
+      nxf_stage
+  
+      set +e
+      (set -o pipefail; (nxf_launch | tee .command.out) 3>&1 1>&2 2>&3 | tee .command.err) &
+      pid=$!
+      wait $pid || nxf_main_ret=$?
+      nxf_unstage
+  }
+  
+  $NXF_ENTRY
+  LAUNCH_COMMAND_EOF
+
+Command exit status:
+  255
+
+Command output:
+  User not in the specified user group. Job not submitted.
+
+Work dir:
+  /scratch1/fs1/dinglab/Active/Projects/ysong/hmftools/test_data/test_output/work/67/361a632405adab48f55d59aa6df167
+
+Tip: when you have fixed the problem you can continue the execution adding the option `-resume` to the run command line
+
+ -- Check '.nextflow.log' file for details
+ERROR ~ Pipeline failed. Please refer to troubleshooting docs: https://nf-co.re/docs/usage/troubleshooting
+
+ -- Check '.nextflow.log' file for details
+```
