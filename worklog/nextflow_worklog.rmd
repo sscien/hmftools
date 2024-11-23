@@ -18,101 +18,42 @@ executor {
     submitRateLimit = '1/1sec'
 }
 ```
+# update /scratch1/fs1/dinglab/Active/Projects/ysong/hmftools/test_data/test_output/rnaseq.config
 
-
-# errors
 ```
-  nxf_fs_move() {
-    local source=$1
-    local target=$2
-    local basedir=$(dirname $1)
-    mkdir -p $target/$basedir
-    mv -f $source $target/$basedir
-  }
-  
-  nxf_fs_rsync() {
-    rsync -rRl $1 $2
-  }
-  
-  nxf_fs_rclone() {
-    rclone copyto $1 $2/$1
-  }
-  
-  nxf_fs_fcp() {
-    fcp $1 $2/$1
-  }
-  
-  on_exit() {
-      exit_status=${nxf_main_ret:=$?}
-      printf -- $exit_status > /scratch1/fs1/dinglab/Active/Projects/ysong/hmftools/test_data/test_output/work/67/361a632405adab48f55d59aa6df167/.exitcode
-      set +u
-      exit $exit_status
-  }
-  
-  on_term() {
-      set +e
-      [[ "$pid" ]] && nxf_kill $pid
-  }
-  
-  nxf_launch() {
-      /bin/bash /scratch1/fs1/dinglab/Active/Projects/ysong/hmftools/test_data/test_output/work/67/361a632405adab48f55d59aa6df167/.command.run nxf_trace
-  }
-  
-  nxf_stage() {
-      true
-      # stage input files
-      rm -f genome.fasta
-      ln -s /scratch1/fs1/dinglab/Active/Projects/ysong/hmftools/test_data/test_output/work/stage-47f02a52-c673-425d-85e8-364c6e6c5922/8e/f280fe7797e800e35f697c60f5c73a/genome.fasta genome.fasta
-  }
-  
-  nxf_unstage() {
-      true
-      [[ ${nxf_main_ret:=0} != 0 ]] && return
-  }
-  
-  nxf_main() {
-      trap on_exit EXIT
-      trap on_term TERM INT USR2
-      trap '' USR1
-  
-      [[ "${NXF_CHDIR:-}" ]] && cd "$NXF_CHDIR"
-      NXF_SCRATCH=''
-      [[ $NXF_DEBUG > 0 ]] && nxf_env
-      touch /scratch1/fs1/dinglab/Active/Projects/ysong/hmftools/test_data/test_output/work/67/361a632405adab48f55d59aa6df167/.command.begin
-      set +u
-      set -u
-      export PYTHONNOUSERSITE="1"
-      export R_PROFILE_USER="/.Rprofile"
-      export R_ENVIRON_USER="/.Renviron"
-      export JULIA_DEPOT_PATH="/usr/local/share/julia"
-      export PATH="$PATH:/scratch1/fs1/dinglab/Active/Projects/ysong/hmftools/test_data/test_output/.nextflow/assets/nf-core/sarek/bin"
-      [[ $NXF_SCRATCH ]] && cd $NXF_SCRATCH
-      export NXF_TASK_WORKDIR="$PWD"
-      nxf_stage
-  
-      set +e
-      (set -o pipefail; (nxf_launch | tee .command.out) 3>&1 1>&2 2>&3 | tee .command.err) &
-      pid=$!
-      wait $pid || nxf_main_ret=$?
-      nxf_unstage
-  }
-  
-  $NXF_ENTRY
-  LAUNCH_COMMAND_EOF
+process {
+    executor = "lsf"
+    queue    = { "general" } 
+    clusterOptions =  { "-a 'docker(quay.io/${task.container})' -G compute-dinglab -J rnaseq -env 'all,PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'" }
+}
 
-Command exit status:
-  255
+executor {
+    queueSize = 7
+    submitRateLimit = '1/1sec'
+}
+```
 
-Command output:
-  User not in the specified user group. Job not submitted.
+LSF_DOCKER_VOLUMES="/scratch1/fs1/ris:/scratch1/fs1/ris /scratch1/fs1/dinglab:/scratch1/fs1/dinglab" \
+thpc-terminal bash -c "cd /scratch1/fs1/dinglab/Active/Projects/ysong/hmftools/test_data/test_output ; nextflow run nf-core/sarek -profile test -c /scratch1/fs1/dinglab/Active/Projects/ysong/hmftools/test_data/test_output/rnaseq.config --outdir /scratch1/fs1/dinglab/Active/Projects/ysong/hmftools/test_data/test_output"
 
-Work dir:
-  /scratch1/fs1/dinglab/Active/Projects/ysong/hmftools/test_data/test_output/work/67/361a632405adab48f55d59aa6df167
-
-Tip: when you have fixed the problem you can continue the execution adding the option `-resume` to the run command line
-
- -- Check '.nextflow.log' file for details
-ERROR ~ Pipeline failed. Please refer to troubleshooting docs: https://nf-co.re/docs/usage/troubleshooting
-
- -- Check '.nextflow.log' file for details
+```
+[f0/f4a66c] process > NFCORE_SAREK:SAREK:BAM_VARIANT_CALLING_GERMLINE_ALL:BAM_VARIANT_CALLING_SINGLE_STRELKA:STRELKA_SINGLE (test)  [100%] 1 of 1 ✔
+[-        ] process > NFCORE_SAREK:SAREK:BAM_VARIANT_CALLING_GERMLINE_ALL:BAM_VARIANT_CALLING_SINGLE_STRELKA:MERGE_STRELKA          -
+[-        ] process > NFCORE_SAREK:SAREK:BAM_VARIANT_CALLING_GERMLINE_ALL:BAM_VARIANT_CALLING_SINGLE_STRELKA:MERGE_STRELKA_GENOME   -
+[-        ] process > NFCORE_SAREK:SAREK:BAM_VARIANT_CALLING_TUMOR_ONLY_ALL:BAM_VARIANT_CALLING_SINGLE_STRELKA:STRELKA_SINGLE       -
+[-        ] process > NFCORE_SAREK:SAREK:BAM_VARIANT_CALLING_TUMOR_ONLY_ALL:BAM_VARIANT_CALLING_SINGLE_STRELKA:MERGE_STRELKA        -
+[-        ] process > NFCORE_SAREK:SAREK:BAM_VARIANT_CALLING_TUMOR_ONLY_ALL:BAM_VARIANT_CALLING_SINGLE_STRELKA:MERGE_STRELKA_GENOME -
+[-        ] process > NFCORE_SAREK:SAREK:BAM_VARIANT_CALLING_SOMATIC_ALL:BAM_VARIANT_CALLING_SOMATIC_STRELKA:STRELKA_SOMATIC        -
+[-        ] process > NFCORE_SAREK:SAREK:BAM_VARIANT_CALLING_SOMATIC_ALL:BAM_VARIANT_CALLING_SOMATIC_STRELKA:MERGE_STRELKA_INDELS   -
+[-        ] process > NFCORE_SAREK:SAREK:BAM_VARIANT_CALLING_SOMATIC_ALL:BAM_VARIANT_CALLING_SOMATIC_STRELKA:MERGE_STRELKA_SNVS     -
+[6e/15ec22] process > NFCORE_SAREK:SAREK:VCF_QC_BCFTOOLS_VCFTOOLS:BCFTOOLS_STATS (test)                                             [100%] 1 of 1 ✔
+[35/ab7a73] process > NFCORE_SAREK:SAREK:VCF_QC_BCFTOOLS_VCFTOOLS:VCFTOOLS_TSTV_COUNT (test)                                        [100%] 1 of 1 ✔
+[63/f2009e] process > NFCORE_SAREK:SAREK:VCF_QC_BCFTOOLS_VCFTOOLS:VCFTOOLS_TSTV_QUAL (test)                                         [100%] 1 of 1 ✔
+[9f/cc1531] process > NFCORE_SAREK:SAREK:VCF_QC_BCFTOOLS_VCFTOOLS:VCFTOOLS_SUMMARY (test)                                           [100%] 1 of 1 ✔
+[27/be123a] process > NFCORE_SAREK:SAREK:MULTIQC                                                                                    [100%] 1 of 1 ✔
+-[nf-core/sarek] Pipeline completed successfully-
+Completed at: 23-Nov-2024 14:47:48
+Duration    : 4m 46s
+CPU hours   : 0.1
+Succeeded   : 23
 ```
